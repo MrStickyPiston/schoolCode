@@ -5,7 +5,7 @@ import random, time
 
 guessed = []
 solution = ""
-with open("8/words.txt", "r") as words:
+with open("words.txt", "r") as words:
     solution = random.choice(words.readlines()).replace("\n", "")
     print(solution)
 
