@@ -46,13 +46,9 @@ class gui(customtkinter.CTk):
 
             try:
                 output = subprocess.Popen([sys.executable, '-m', 'pip', 'uninstall', self.package_name.get(), '-y'],
-                                          stdout=subprocess.PIPE)
+                                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             except Exception:
                 output = subprocess.Popen
-
-            for i in output.stdout.readlines():
-                self.logs.insert('end', text=f"{i.decode()}")
-                self.update()
 
         else:
             self.logs.insert('end', text=f"Starting the installation of {self.package_name.get()}\n")
@@ -64,9 +60,12 @@ class gui(customtkinter.CTk):
             except Exception:
                 output = subprocess.Popen
 
-            for i in output.stdout.readlines():
-                self.logs.insert('end', text=f"{i.decode()}")
-                self.update()
+        while True:
+            line = output.stdout.readline()
+            if line.decode() == '' and output.poll() is not None:
+                break
+            self.logs.insert('end', text=f"{line.decode()}")
+            self.update()
 
         self.logs.insert("end", text="\n")
         self.logs.configure(state="disabled")
