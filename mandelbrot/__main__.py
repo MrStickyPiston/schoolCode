@@ -45,7 +45,7 @@ def main(n, pos, zoom):
     plt.imshow(img)
     plt.axis("off")
     plt.show()
-    print("GUI ready!")
+    print("shutting down GUI")
 
 
 if __name__ == "__main__":
