@@ -1,51 +1,95 @@
 #include <stdio.h>
-#include <complex.h>
+#include <stdlib.h>
+#include <stdint.h>
 
-enum {size = 10000};
-int set[size*2][size*2];
+int main(int argc, char* argv[]);
+int get_iter(double x, double y, int maxiter);
 
-int mandelbrot(complex double c, int thresh, int max_steps){
-    
-    complex double z = c;
-    int iterations = 1;
+int main(int argc, char* argv[]) {
+  if (argc != 8) {
+    printf("Invalid args. Example args:\n%s -2 1 -1.1 1.1 50 1028 mandelbrot.ppm\n", argv[0]);
+    return 1;
+  }
 
-    while (iterations < max_steps &&  creal(z*conj(z)) < thresh){
-        z = z * z + c;
-        iterations += 1;
+  const double xmin = atof(argv[1]);
+  const double xmax = atof(argv[2]);
+  const double ymin = atof(argv[3]);
+  const double ymax = atof(argv[4]);
+
+  const uint16_t maxiter = (unsigned short) atoi(argv[5]);
+
+  const int xres = atoi(argv[6]);
+  const int yres = (xres * (ymax - ymin)) / (xmax - xmin);
+
+  const char * filename = argv[7];
+
+  FILE * file = fopen(filename, "wb");
+  //char * comment = "# Mandelbrot set";
+
+  fprintf(file,
+    "P6\n# Mandelbrot, xmin=%lf, xmax=%lf, ymin=%lf, ymax=%lf, maxiter=%d\n%d\n%d\n%d\n",
+    xmin, xmax, ymin, ymax, maxiter, xres, yres, (maxiter < 256 ? 256 : maxiter));
+
+  const double dx = (xmax - xmin) / xres;
+  const double dy = (ymax - ymin) / yres;
+  
+  if (xres < 10) {
+    printf("Too small xres: %d.\nAborting the generation...\n", xres);
+    return 1;
+  } else if (yres < 10) {
+    printf("Too small yres: %d.\nAborting the generation...\n", yres);
+    return 1;
+  }
+
+  double x, y;
+  double u, v;
+  int i, j, iterations;
+  for (j = 0; j < yres; j++) {
+    y = ymax - j * dy;
+    for (i = 0; i < xres; i++) {
+      x = xmin + i * dx;
+      iterations = get_iter(x, y, maxiter);
+
+      if (iterations >= maxiter) {
+        const unsigned char black[] = {
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        };
+        fwrite(black, 6, 1, file);
+      } else {
+        const unsigned char color[] = {
+          iterations >> 8,
+          iterations & 255,
+          iterations >> 8,
+          iterations & 255,
+          iterations >> 8,
+          iterations & 255,
+        };
+        fwrite(color, 6, 1, file);
+      };
     }
-    return iterations;
+  }
+  fclose(file);
+  return 0;
 }
 
-int main(){
-    complex double c;
+int get_iter(double x, double y, int maxiter) {
+  double u = 0.0;
+  double v = 0.0;
+  double u2 = 0.0;
+  double v2 = 0.0;
 
-    double mx = 2.48 / (size - 1);
-    double my = 2.26 / (size - 1);
-    
+  int i;
 
-    for (int x = -size; x<size; x++){
-        
-        for (int y = -size; y<size; y++){
-            
-            c = mx * x - 1 + my * y * I ;
-            int iterations = mandelbrot(c, 4, 50);
-            if (iterations != 50){
-                //printf("%d at %f + %f\n", iterations, creal(c), cimag(c));
-            }
-            //printf("%f + %f\n", creal(c), cimag(c));
-
-            set[x+size][y+size] = iterations;
-        }
-    }
-
-    for(int i = 0; i < size*2; i++) {
-        for(int j = 0; j < size*2; j++) {
-            if (set[i][j] != 50){
-                printf("*", set[i][j]);
-            } else {
-                printf(" ");
-            }
-        }
-    printf("\n");
-    } 
+  for (i = 1; i < maxiter && (u2 + v2 < 4.0); i++) {
+    v = 2 * u * v + y;
+    u = u2 - v2 + x;
+    u2 = u * u;
+    v2 = v * v;
+  };
+  return i;
 }
