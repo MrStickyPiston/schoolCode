@@ -114,6 +114,18 @@ if "--lacunarity" in sys.argv:
 else:
     lacunarity = 2.0
 
+
+if "--mode" in sys.argv:
+    mode = sys.argv[sys.argv.index("--mode") + 1]
+    if mode == "perlin":
+        mode = noise.pnoise2
+    elif mode == "simplex":
+        mode = noise.snoise2
+    else:
+        mode = noise.snoise2
+else:
+    mode = noise.snoise2
+
 if "--debug" in sys.argv:
     debug = True
 else:
@@ -128,7 +140,7 @@ for i in range(shape[0]):
     sys.stdout.write(f"\rGenerating map ({str(round((i / shape[0]) * 100, 1))}% Done)")
     sys.stdout.flush()
     for j in range(shape[1]):
-        world[i][j] = noise.snoise2(i / scale,
+        world[i][j] = mode(i / scale,
                                     j / scale,
                                     octaves=octaves,
                                     persistence=persistence,
