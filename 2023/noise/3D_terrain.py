@@ -145,6 +145,7 @@ x, y = np.meshgrid(lin_x, lin_y)
 matplotlib.rcParams['toolbar'] = 'None'
 
 fig = matplotlib.pyplot.figure(f"3D terrain generator (seed: {seed})")
+fig.subplots_adjust(top=1.1, bottom=-.1)
 
 ax = fig.add_subplot(111, projection="3d")
 ax.plot_surface(x, y, world, cmap='terrain')
