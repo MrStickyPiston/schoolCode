@@ -1,3 +1,5 @@
+import argparse
+import os
 import random
 import subprocess
 import sys
@@ -24,139 +26,87 @@ except ImportError:
     import numpy as np
     import matplotlib.pyplot
 
-if "--seed" in sys.argv:
-    try:
-        seed = int(sys.argv[sys.argv.index("--seed") + 1])
-    except IndexError:
-        sys.stdout.write(f"Invalid seed")
-        sys.stdout.flush()
-        sys.exit(1)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(prog=os.path.basename(__file__),
+                                     description='A program to generate 3D terrain with the use of noises.')
 
-    except ValueError:
-        sys.stdout.write(f"Invalid seed")
-        sys.stdout.flush()
-        sys.exit(1)
-else:
-    seed = int(random.random() * 10000)
+    parser.add_argument('--seed', '-s',
+                        dest="seed",
+                        type=int,
+                        default=random.randint(10000, 99999))
 
-if "--scale" in sys.argv:
-    try:
-        scale = int(sys.argv[sys.argv.index("--scale") + 1])
-    except IndexError:
-        sys.stdout.write(f"Invalid scale")
-        sys.stdout.flush()
-        sys.exit(1)
+    parser.add_argument('--scale',
+                        dest="scale",
+                        type=int,
+                        default=1000)
 
-    except ValueError:
-        sys.stdout.write(f"Invalid scale")
-        sys.stdout.flush()
-        sys.exit(1)
-else:
-    scale = 1000
+    parser.add_argument('--octaves',
+                        dest="octaves",
+                        type=int,
+                        default=5)
 
-if "--shape" in sys.argv:
-    try:
-        shape = (int(sys.argv[sys.argv.index("--shape") + 1]), int(sys.argv[sys.argv.index("--shape") + 2]))
-    except IndexError:
-        sys.stdout.write(f"Invalid shape")
-        sys.stdout.flush()
-        sys.exit(1)
+    parser.add_argument('--persistence',
+                        dest="persistence",
+                        type=float,
+                        default=0.5)
 
-    except ValueError:
-        sys.stdout.write(f"Invalid shape")
-        sys.stdout.flush()
-        sys.exit(1)
-else:
-    shape = (int(scale), int(scale))
+    parser.add_argument('--lacunarity',
+                        dest="lacunarity",
+                        type=float,
+                        default=2)
 
-if "--octaves" in sys.argv:
-    try:
-        octaves = int(sys.argv[sys.argv.index("--octaves") + 1])
-    except IndexError:
-        sys.stdout.write(f"Invalid octaves")
-        sys.stdout.flush()
-        sys.exit(1)
+    parser.add_argument('--mode',
+                        dest="mode",
+                        choices=["perlin", "simplex"],
+                        default=noise.snoise2)
 
-    except ValueError:
-        sys.stdout.write(f"Invalid octaves")
-        sys.stdout.flush()
-        sys.exit(1)
-else:
-    octaves = 6
+    parser.add_argument('--debug',
+                        dest="debug",
+                        action='store_true')
 
-if "--persistence" in sys.argv:
-    try:
-        persistence = float(sys.argv[sys.argv.index("--persistence") + 1])
-    except IndexError:
-        sys.stdout.write(f"Invalid persistence")
-        sys.stdout.flush()
-        sys.exit(1)
+    # Load in args for --shape
+    args = parser.parse_args()
+    parser.add_argument('--shape',
+                        dest="shape",
+                        nargs=2,
+                        type=int,
+                        default=[args.scale, args.scale])
 
-    except ValueError:
-        sys.stdout.write(f"Invalid persistence")
-        sys.stdout.flush()
-        sys.exit(1)
-else:
-    persistence = 0.5
+    args = parser.parse_args()
 
-if "--lacunarity" in sys.argv:
-    try:
-        lacunarity = float(sys.argv[sys.argv.index("--lacunarity") + 1])
-    except IndexError:
-        sys.stdout.write(f"Invalid lacunarity")
-        sys.stdout.flush()
-        sys.exit(1)
-
-    except ValueError:
-        sys.stdout.write(f"Invalid lacunarity")
-        sys.stdout.flush()
-        sys.exit(1)
-else:
-    lacunarity = 2.0
-
-
-if "--mode" in sys.argv:
-    mode = sys.argv[sys.argv.index("--mode") + 1]
-    if mode == "perlin":
+    if args.mode == "perlin":
         mode = noise.pnoise2
-    elif mode == "simplex":
+    elif args.mode == "simplex":
         mode = noise.snoise2
     else:
         mode = noise.snoise2
-else:
-    mode = noise.snoise2
 
-if "--debug" in sys.argv:
-    debug = True
-else:
-    debug = False
-
-sys.stdout.write(f"Using seed {seed}")
+sys.stdout.write(f"Using seed {args.seed}")
 sys.stdout.write("\n")
 sys.stdout.flush()
 
-world = np.zeros(shape)
-for i in range(shape[0]):
-    sys.stdout.write(f"\rGenerating map ({str(round((i / shape[0]) * 100, 1))}% Done)")
+world = np.zeros(args.shape)
+for i in range(args.shape[0]):
+    sys.stdout.write(f"\rGenerating map ({str(round((i / args.shape[0]) * 100, 1))}% Done)")
     sys.stdout.flush()
-    for j in range(shape[1]):
-        world[i][j] = mode(i / scale,
-                                    j / scale,
-                                    octaves=octaves,
-                                    persistence=persistence,
-                                    lacunarity=lacunarity,
-                                    repeatx=shape[0],
-                                    repeaty=shape[1],
-                                    base=seed)
+    for j in range(args.shape[1]):
+        world[i][j] = mode(i / args.scale,
+                           j / args.scale,
+                           octaves=args.octaves,
+                           persistence=args.persistence,
+                           lacunarity=args.lacunarity,
+                           repeatx=args.shape[0],
+                           repeaty=args.shape[1],
+                           base=args.seed)
     sys.stdout.write(f"\rGenerating map (100% Done)")
 
-lin_x = np.linspace(0, 1, shape[0], endpoint=False)
-lin_y = np.linspace(0, 1, shape[1], endpoint=False)
+lin_x = np.linspace(0, 1, args.shape[0], endpoint=False)
+lin_y = np.linspace(0, 1, args.shape[1], endpoint=False)
 x, y = np.meshgrid(lin_x, lin_y)
 
 matplotlib.rcParams['toolbar'] = 'None'
 
-fig = matplotlib.pyplot.figure(f"3D terrain generator (seed: {seed})")
+fig = matplotlib.pyplot.figure(f"3D terrain generator (seed: {args.seed})")
 fig.subplots_adjust(top=1.1, bottom=-.1)
 
 ax = fig.add_subplot(111, projection="3d")
@@ -164,16 +114,16 @@ ax.plot_surface(x, y, world, cmap='terrain')
 
 plotinfo = f"""Terrain Info
 time elapsed: {time.time() - startTime}
-seed: {seed}
-scale: {scale}
-shape: {shape[0]}x{shape[1]}
-octaves: {octaves}
-persistence: {persistence}
-lacunarity: {lacunarity}"""
+seed: {args.seed}
+scale: {args.scale}
+shape: {args.shape[0]}x{args.shape[1]}
+octaves: {args.octaves}
+persistence: {args.persistence}
+lacunarity: {args.lacunarity}"""
 
 print(f"\n{plotinfo}")
 
-if debug:
+if args.debug:
     ax.text2D(-.25, 1, plotinfo, ha='left', va='top', transform=ax.transAxes)
 ax.set_axis_off()
 
