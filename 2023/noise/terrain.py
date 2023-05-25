@@ -28,10 +28,17 @@ except ImportError:
 
 
 class Args:
-    def __init__(self, seed=random.randint(1000, 9999), octaves=5, scale=1000, shape=[1000, 1000], persistence=0.5, lacunarity=2, mode="simplex", debug=False):
+    def __init__(self,
+                 seed=random.randint(1000, 9999),
+                 octaves=5, scale=1000,
+                 shape=[1000, 1000],
+                 persistence=0.5,
+                 lacunarity=2,
+                 mode="simplex",
+                 debug=False):
         self.seed = seed
         self.octaves = octaves
-        self.scale= scale
+        self.scale = scale
         self.shape = shape
         self.persistence = persistence
         self.lacunarity = lacunarity
@@ -45,7 +52,7 @@ class Args:
         self.debug = debug
 
 
-def generate_terrain(args):
+def generate(args):
     world = np.zeros(args.shape)
     for i in range(args.shape[0]):
         sys.stdout.write(f"\rGenerating terrain ({str(round((i / args.shape[0]) * 100, 1))}% Done)")
@@ -64,7 +71,7 @@ def generate_terrain(args):
     return world
 
 
-def render_terrain(args, world):
+def render(args, world):
     lin_x = np.linspace(0, 1, args.shape[0], endpoint=False)
     lin_y = np.linspace(0, 1, args.shape[1], endpoint=False)
     x, y = np.meshgrid(lin_x, lin_y)
@@ -152,4 +159,4 @@ if __name__ == "__main__":
     sys.stdout.write("\n")
     sys.stdout.flush()
 
-    render_terrain(args, generate_terrain(args))
+    render(args, generate(args))
