@@ -26,6 +26,59 @@ except ImportError:
     import numpy as np
     import matplotlib.pyplot
 
+
+def generate_terrain(args):
+    world = np.zeros(args.shape)
+    for i in range(args.shape[0]):
+        sys.stdout.write(f"\rGenerating terrain ({str(round((i / args.shape[0]) * 100, 1))}% Done)")
+        sys.stdout.flush()
+        for j in range(args.shape[1]):
+            world[i][j] = args.noise(i / args.scale,
+                                     j / args.scale,
+                                     octaves=args.octaves,
+                                     persistence=args.persistence,
+                                     lacunarity=args.lacunarity,
+                                     repeatx=args.shape[0],
+                                     repeaty=args.shape[1],
+                                     base=args.seed)
+
+    sys.stdout.write(f"\rGenerating terrain (100% Done)")
+    return world
+
+
+def render_terrain(args, world):
+    lin_x = np.linspace(0, 1, args.shape[0], endpoint=False)
+    lin_y = np.linspace(0, 1, args.shape[1], endpoint=False)
+    x, y = np.meshgrid(lin_x, lin_y)
+
+    matplotlib.rcParams['toolbar'] = 'None'
+
+    fig = matplotlib.pyplot.figure(f"3D terrain generator (seed: {args.seed})")
+    fig.subplots_adjust(top=1.1, bottom=-.1)
+
+    ax = fig.add_subplot(111, projection="3d")
+    ax.plot_surface(x, y, world, cmap='terrain')
+
+    plotinfo = f"""Terrain Info
+time elapsed: {time.time() - startTime}
+mode: {args.mode}
+seed: {args.seed}
+scale: {args.scale}
+shape: {args.shape[0]}x{args.shape[1]}
+octaves: {args.octaves}
+persistence: {args.persistence}
+lacunarity: {args.lacunarity}"""
+
+    print(f"\n{plotinfo}")
+
+    if args.debug:
+        ax.text2D(-0.1, 0.85, plotinfo, ha='left', va='top', transform=ax.transAxes)
+    ax.set_axis_off()
+
+    matplotlib.pyplot.grid(False)
+    matplotlib.pyplot.show()
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog=os.path.basename(__file__),
                                      description='A program to generate 3D terrain with the use of noises.')
@@ -33,7 +86,7 @@ if __name__ == "__main__":
     parser.add_argument('--seed', '-s',
                         dest="seed",
                         type=int,
-                        default=random.randint(10000, 99999))
+                        default=random.randint(1000, 9999))
 
     parser.add_argument('--scale',
                         dest="scale",
@@ -58,7 +111,7 @@ if __name__ == "__main__":
     parser.add_argument('--mode',
                         dest="mode",
                         choices=["perlin", "simplex"],
-                        default=noise.snoise2)
+                        default="simplex")
 
     parser.add_argument('--debug',
                         dest="debug",
@@ -75,57 +128,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.mode == "perlin":
-        mode = noise.pnoise2
-    elif args.mode == "simplex":
-        mode = noise.snoise2
+        args.noise = noise.pnoise2
     else:
-        mode = noise.snoise2
+        args.noise = noise.snoise2
 
-sys.stdout.write(f"Using seed {args.seed}")
-sys.stdout.write("\n")
-sys.stdout.flush()
-
-world = np.zeros(args.shape)
-for i in range(args.shape[0]):
-    sys.stdout.write(f"\rGenerating map ({str(round((i / args.shape[0]) * 100, 1))}% Done)")
+    sys.stdout.write(f"Using seed {args.seed}")
+    sys.stdout.write("\n")
     sys.stdout.flush()
-    for j in range(args.shape[1]):
-        world[i][j] = mode(i / args.scale,
-                           j / args.scale,
-                           octaves=args.octaves,
-                           persistence=args.persistence,
-                           lacunarity=args.lacunarity,
-                           repeatx=args.shape[0],
-                           repeaty=args.shape[1],
-                           base=args.seed)
-    sys.stdout.write(f"\rGenerating map (100% Done)")
 
-lin_x = np.linspace(0, 1, args.shape[0], endpoint=False)
-lin_y = np.linspace(0, 1, args.shape[1], endpoint=False)
-x, y = np.meshgrid(lin_x, lin_y)
-
-matplotlib.rcParams['toolbar'] = 'None'
-
-fig = matplotlib.pyplot.figure(f"3D terrain generator (seed: {args.seed})")
-fig.subplots_adjust(top=1.1, bottom=-.1)
-
-ax = fig.add_subplot(111, projection="3d")
-ax.plot_surface(x, y, world, cmap='terrain')
-
-plotinfo = f"""Terrain Info
-time elapsed: {time.time() - startTime}
-seed: {args.seed}
-scale: {args.scale}
-shape: {args.shape[0]}x{args.shape[1]}
-octaves: {args.octaves}
-persistence: {args.persistence}
-lacunarity: {args.lacunarity}"""
-
-print(f"\n{plotinfo}")
-
-if args.debug:
-    ax.text2D(-.25, 1, plotinfo, ha='left', va='top', transform=ax.transAxes)
-ax.set_axis_off()
-
-matplotlib.pyplot.grid(False)
-matplotlib.pyplot.show()
+    render_terrain(args, generate_terrain(args))
