@@ -27,6 +27,24 @@ except ImportError:
     import matplotlib.pyplot
 
 
+class Args:
+    def __init__(self, seed=random.randint(1000, 9999), octaves=5, scale=1000, shape=[1000, 1000], persistence=0.5, lacunarity=2, mode="simplex", debug=False):
+        self.seed = seed
+        self.octaves = octaves
+        self.scale= scale
+        self.shape = shape
+        self.persistence = persistence
+        self.lacunarity = lacunarity
+
+        self.mode = mode
+        if self.mode == "perlin":
+            self.noise = noise.pnoise2
+        else:
+            self.noise = noise.snoise2
+
+        self.debug = debug
+
+
 def generate_terrain(args):
     world = np.zeros(args.shape)
     for i in range(args.shape[0]):
@@ -88,15 +106,21 @@ if __name__ == "__main__":
                         type=int,
                         default=random.randint(1000, 9999))
 
+    parser.add_argument('--octaves',
+                        dest="octaves",
+                        type=int,
+                        default=5)
+
     parser.add_argument('--scale',
                         dest="scale",
                         type=int,
                         default=1000)
 
-    parser.add_argument('--octaves',
-                        dest="octaves",
+    parser.add_argument('--shape',
+                        dest="shape",
+                        nargs=2,
                         type=int,
-                        default=5)
+                        default=[1000, 1000])
 
     parser.add_argument('--persistence',
                         dest="persistence",
@@ -116,14 +140,6 @@ if __name__ == "__main__":
     parser.add_argument('--debug',
                         dest="debug",
                         action='store_true')
-
-    # Load in args for --shape
-    args = parser.parse_args()
-    parser.add_argument('--shape',
-                        dest="shape",
-                        nargs=2,
-                        type=int,
-                        default=[args.scale, args.scale])
 
     args = parser.parse_args()
 
