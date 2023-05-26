@@ -108,43 +108,51 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog=os.path.basename(__file__),
                                      description='A program to generate 3D terrain with the use of noises.')
 
-    parser.add_argument('--seed', '-s',
+    parser.add_argument('--seed',
+                        help="The base of the noise. (INT)",
                         dest="seed",
                         type=int,
                         default=random.randint(1000, 9999))
 
     parser.add_argument('--octaves',
+                        help="The amount of octaves, that 'carve' the terrain. (INT)",
                         dest="octaves",
                         type=int,
                         default=5)
 
     parser.add_argument('--scale',
+                        help="The scale of the generated terrain. (INT)",
                         dest="scale",
                         type=int,
                         default=1000)
 
     parser.add_argument('--shape',
+                        help="The shape of the generated terrain. (INT INT)",
                         dest="shape",
                         nargs=2,
                         type=int,
                         default=[1000, 1000])
 
     parser.add_argument('--persistence',
+                        help="The smoothness of the generated terrain (FLOAT)",
                         dest="persistence",
                         type=float,
                         default=0.5)
 
     parser.add_argument('--lacunarity',
+                        help="The roughness of the generated terrain (FLOAT)",
                         dest="lacunarity",
                         type=float,
                         default=2)
 
     parser.add_argument('--mode',
+                        help="The noise mode the terrain uses. (perlin|simplex)",
                         dest="mode",
                         choices=["perlin", "simplex"],
                         default="simplex")
 
     parser.add_argument('--debug',
+                        help="Show debug info.",
                         dest="debug",
                         action='store_true')
 
