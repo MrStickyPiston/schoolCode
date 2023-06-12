@@ -7,11 +7,14 @@ import time
 
 startTime = time.time()
 
-"""Example configuaration: --shape 1000 1000 --scale 550 --persistence 0.45"""
+"""Example configuaration: --shape 1000 1000 --scale 550 --persistence 0.45 --lacunarity 1.86"""
 
 try:
     import noise
 except ImportError:
+    if sys.version_info.major != 3 or sys.version_info.minor != 11:
+        print(f"Invalid version f{sys.version}. Please install noise module manually")
+        exit(1)
     if sys.maxsize > 2 ** 32:
         subprocess.check_call([sys.executable, "-m", "pip", "install", "wheels/noise-1.2.3-cp311-cp311-win_amd64.whl"])
     else:
