@@ -1,7 +1,7 @@
-import random
-
 from graphics import *
-import random, time
+
+import time
+import random
 
 guessed = []
 solution = ""
