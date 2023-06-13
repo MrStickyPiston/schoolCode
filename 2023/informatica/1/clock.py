@@ -36,7 +36,7 @@ def to_text(hours, minutes):
             print(f"Half {Numbers[hours]}")
 
     if 60 > minutes >= 40:
-        print(f"{Numbers[60 - minutes]} voor {Numbers[hours + 1]}")
+        print(f"{Numbers[60 - minutes]} voor {Numbers[hours + 1].lower()}")
 
 
 if __name__ == "__main__":
