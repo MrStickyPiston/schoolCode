@@ -1,9 +1,9 @@
 import argparse
-import os
 import random
 import subprocess
 import sys
 import time
+from gooey import Gooey
 
 startTime = time.time()
 
@@ -58,8 +58,7 @@ class Args:
 def generate(args):
     world = np.zeros(args.shape)
     for i in range(args.shape[0]):
-        sys.stdout.write(f"\rGenerating terrain ({str(round((i / args.shape[0]) * 100, 1))}% Done)")
-        sys.stdout.flush()
+        print(f"Generating terrain ({str(round((i / args.shape[0]) * 100, 1))}% Done)")
         for j in range(args.shape[1]):
             world[i][j] = args.noise(i / args.scale,
                                      j / args.scale,
@@ -70,7 +69,7 @@ def generate(args):
                                      repeaty=args.shape[1],
                                      base=args.seed)
 
-    sys.stdout.write(f"\rGenerating terrain (100% Done)")
+    print(f"Generating terrain (100% Done)")
     return world
 
 
@@ -87,7 +86,8 @@ def render(args, world):
     ax = fig.add_subplot(111, projection="3d")
     ax.plot_surface(x, y, world, cmap='terrain')
 
-    plotinfo = f"""Terrain Info
+    plotinfo = f"""
+------------------- Terrain Info -------------------
 time elapsed: {time.time() - startTime}
 mode: {args.mode}
 seed: {args.seed}
@@ -95,7 +95,9 @@ scale: {args.scale}
 shape: {args.shape[0]}x{args.shape[1]}
 octaves: {args.octaves}
 persistence: {args.persistence}
-lacunarity: {args.lacunarity}"""
+lacunarity: {args.lacunarity}
+----------------------------------------------------
+"""
 
     print(f"\n{plotinfo}")
 
@@ -107,8 +109,9 @@ lacunarity: {args.lacunarity}"""
     matplotlib.pyplot.show()
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog=os.path.basename(__file__),
+@Gooey(program_name='3D terrain generator')
+def main():
+    parser = argparse.ArgumentParser(prog='3D terrain generator',
                                      description='A program to generate 3D terrain with the use of noises.')
 
     parser.add_argument('--seed',
@@ -171,3 +174,7 @@ if __name__ == "__main__":
     sys.stdout.flush()
 
     render(args, generate(args))
+
+
+if __name__ == "__main__":
+    main()
